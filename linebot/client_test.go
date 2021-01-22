@@ -15,7 +15,9 @@
 package linebot
 
 import (
+	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -23,29 +25,35 @@ import (
 	"testing"
 )
 
-func mockClient(server *httptest.Server) (*Client, error) {
-	client, err := New(
-		"testsecret",
-		"testtoken",
-		WithHTTPClient(&http.Client{
+func mockClient(server *httptest.Server, dataServer *httptest.Server) (*Client, error) {
+	u, err := url.ParseRequestURI(server.URL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse server.URL: %v", err)
+	}
+	du, err := url.ParseRequestURI(dataServer.URL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse dataServer.URL: %v", err)
+	}
+	return &Client{
+		channelSecret:    "testsecret",
+		channelToken:     "testtoken",
+		endpointBase:     u,
+		endpointBaseData: du,
+		httpClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify: true,
 				},
 			},
-		}),
-		WithEndpointBase(server.URL),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
+		},
+	}, nil
 }
 
 func TestNewClient(t *testing.T) {
 	secret := "testsecret"
 	token := "testtoken"
 	wantURL, _ := url.Parse(APIEndpointBase)
+	wantDataURL, _ := url.Parse(APIEndpointBaseData)
 	client, err := New(secret, token)
 	if err != nil {
 		t.Fatal(err)
@@ -59,6 +67,9 @@ func TestNewClient(t *testing.T) {
 	if !reflect.DeepEqual(client.endpointBase, wantURL) {
 		t.Errorf("endpointBase %v; want %v", client.endpointBase, wantURL)
 	}
+	if !reflect.DeepEqual(client.endpointBaseData, wantDataURL) {
+		t.Errorf("endpointBase %v; want %v", client.endpointBaseData, wantDataURL)
+	}
 	if client.httpClient != http.DefaultClient {
 		t.Errorf("httpClient %p; want %p", client.httpClient, http.DefaultClient)
 	}
@@ -68,13 +79,16 @@ func TestNewClientWithOptions(t *testing.T) {
 	secret := "testsecret"
 	token := "testtoken"
 	endpoint := "https://example.test/"
+	dataEndpoint := "https://example-data.test/"
 	httpClient := http.Client{}
 	wantURL, _ := url.Parse(endpoint)
+	wantDataURL, _ := url.Parse(dataEndpoint)
 	client, err := New(
 		secret,
 		token,
 		WithHTTPClient(&httpClient),
 		WithEndpointBase(endpoint),
+		WithEndpointBaseData(dataEndpoint),
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -82,7 +96,16 @@ func TestNewClientWithOptions(t *testing.T) {
 	if !reflect.DeepEqual(client.endpointBase, wantURL) {
 		t.Errorf("endpointBase %v; want %v", client.endpointBase, wantURL)
 	}
+	if !reflect.DeepEqual(client.endpointBaseData, wantDataURL) {
+		t.Errorf("endpointBaseData %v; want %v", client.endpointBaseData, wantDataURL)
+	}
 	if client.httpClient != &httpClient {
 		t.Errorf("httpClient %p; want %p", client.httpClient, &httpClient)
+	}
+}
+
+func expectCtxDeadlineExceed(ctx context.Context, err error, t *testing.T) {
+	if err == nil || ctx.Err() != context.DeadlineExceeded {
+		t.Errorf("err %v; want %v", err, context.DeadlineExceeded)
 	}
 }

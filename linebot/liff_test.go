@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -82,18 +83,29 @@ func TestGetLIFF(t *testing.T) {
 		w.Write(tc.Response)
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i, tc := range testCases {
-		res, err := client.GetLIFF().Do()
-		if err != nil {
-			t.Error(err)
-		}
-		if !reflect.DeepEqual(res, tc.Want.Response) {
-			t.Errorf("Response %d %v; want %v", i, res, tc.Want.Response)
-		}
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			res, err := client.GetLIFF().Do()
+			if err != nil {
+				t.Error(err)
+			}
+			if !reflect.DeepEqual(res, tc.Want.Response) {
+				t.Errorf("Response %v; want %v", res, tc.Want.Response)
+			}
+		})
 	}
 }
 
@@ -144,18 +156,29 @@ func TestAddLIFF(t *testing.T) {
 		w.Write(tc.Response)
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i, tc := range testCases {
-		res, err := client.AddLIFF(tc.View).Do()
-		if err != nil {
-			t.Error(err)
-		}
-		if !reflect.DeepEqual(res, tc.Want.Response) {
-			t.Errorf("Response %d %v; want %v", i, res, tc.Want.Response)
-		}
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			res, err := client.AddLIFF(tc.View).Do()
+			if err != nil {
+				t.Error(err)
+			}
+			if !reflect.DeepEqual(res, tc.Want.Response) {
+				t.Errorf("Response %v; want %v", res, tc.Want.Response)
+			}
+		})
 	}
 }
 
@@ -208,18 +231,29 @@ func TestUpdateLIFF(t *testing.T) {
 		w.Write(tc.Response)
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i, tc := range testCases {
-		res, err := client.UpdateLIFF(tc.LIFFID, tc.View).Do()
-		if err != nil {
-			t.Error(err)
-		}
-		if !reflect.DeepEqual(res, tc.Want.Response) {
-			t.Errorf("Response %d %v; want %v", i, res, tc.Want.Response)
-		}
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			res, err := client.UpdateLIFF(tc.LIFFID, tc.View).Do()
+			if err != nil {
+				t.Error(err)
+			}
+			if !reflect.DeepEqual(res, tc.Want.Response) {
+				t.Errorf("Response %v; want %v", res, tc.Want.Response)
+			}
+		})
 	}
 }
 
@@ -267,17 +301,28 @@ func TestDeleteLIFF(t *testing.T) {
 		w.Write(tc.Response)
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i, tc := range testCases {
-		res, err := client.DeleteLIFF(tc.LIFFID).Do()
-		if err != nil {
-			t.Error(err)
-		}
-		if !reflect.DeepEqual(res, tc.Want.Response) {
-			t.Errorf("Response %d %v; want %v", i, res, tc.Want.Response)
-		}
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			res, err := client.DeleteLIFF(tc.LIFFID).Do()
+			if err != nil {
+				t.Error(err)
+			}
+			if !reflect.DeepEqual(res, tc.Want.Response) {
+				t.Errorf("Response %v; want %v", res, tc.Want.Response)
+			}
+		})
 	}
 }

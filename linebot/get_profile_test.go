@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -33,15 +34,17 @@ func TestGetProfile(t *testing.T) {
 		Error       error
 	}
 	var testCases = []struct {
+		Label        string
 		UserID       string
 		ResponseCode int
 		Response     []byte
 		Want         want
 	}{
 		{
+			Label:        "Success",
 			UserID:       "U0047556f2e40dba2456887320ba7c76d",
 			ResponseCode: 200,
-			Response:     []byte(`{"userId":"U0047556f2e40dba2456887320ba7c76d","displayName":"BOT API","pictureUrl":"https://obs.line-apps.com/abcdefghijklmn","statusMessage":"Hello, LINE!"}`),
+			Response:     []byte(`{"userId":"U0047556f2e40dba2456887320ba7c76d","displayName":"BOT API","pictureUrl":"https://obs.line-apps.com/abcdefghijklmn","statusMessage":"Hello, LINE!","language":"en"}`),
 			Want: want{
 				URLPath:     fmt.Sprintf(APIEndpointGetProfile, "U0047556f2e40dba2456887320ba7c76d"),
 				RequestBody: []byte(""),
@@ -50,11 +53,12 @@ func TestGetProfile(t *testing.T) {
 					DisplayName:   "BOT API",
 					PictureURL:    "https://obs.line-apps.com/abcdefghijklmn",
 					StatusMessage: "Hello, LINE!",
+					Language:      "en",
 				},
 			},
 		},
 		{
-			// Internal server error
+			Label:        "Internal server error",
 			UserID:       "U0047556f2e40dba2456887320ba7c76d",
 			ResponseCode: 500,
 			Response:     []byte("500 Internal server error"),
@@ -89,25 +93,36 @@ func TestGetProfile(t *testing.T) {
 		w.Write(tc.Response)
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected Data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i, tc := range testCases {
 		currentTestIdx = i
-		res, err := client.GetProfile(tc.UserID).Do()
-		if tc.Want.Error != nil {
-			if !reflect.DeepEqual(err, tc.Want.Error) {
-				t.Errorf("Error %d %v; want %v", i, err, tc.Want.Error)
+		t.Run(strconv.Itoa(i)+"/"+tc.Label, func(t *testing.T) {
+			res, err := client.GetProfile(tc.UserID).Do()
+			if tc.Want.Error != nil {
+				if !reflect.DeepEqual(err, tc.Want.Error) {
+					t.Errorf("Error %v; want %v", err, tc.Want.Error)
+				}
+			} else {
+				if err != nil {
+					t.Error(err)
+				}
 			}
-		} else {
-			if err != nil {
-				t.Error(err)
+			if !reflect.DeepEqual(res, tc.Want.Response) {
+				t.Errorf("Response %v; want %v", res, tc.Want.Response)
 			}
-		}
-		if !reflect.DeepEqual(res, tc.Want.Response) {
-			t.Errorf("Response %d %v; want %v", i, res, tc.Want.Response)
-		}
+		})
 	}
 }
 
@@ -118,16 +133,23 @@ func TestGetProfileWithContext(t *testing.T) {
 		w.Write([]byte("{}"))
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected Data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Millisecond)
 	defer cancel()
 	_, err = client.GetProfile("U0047556f2e40dba2456887320ba7c76d").WithContext(ctx).Do()
-	if err != context.DeadlineExceeded {
-		t.Errorf("err %v; want %v", err, context.DeadlineExceeded)
-	}
+	expectCtxDeadlineExceed(ctx, err, t)
 }
 
 func BenchmarkGetProfile(b *testing.B) {
@@ -136,7 +158,16 @@ func BenchmarkGetProfile(b *testing.B) {
 		w.Write([]byte(`{"userId":"U","displayName":"A","pictureUrl":"https://","statusMessage":"B"}`))
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		b.Error("Unexpected Data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -154,6 +185,7 @@ func TestGetGroupMemberProfile(t *testing.T) {
 		Error       error
 	}
 	var testCases = []struct {
+		Label        string
 		GroupID      string
 		UserID       string
 		ResponseCode int
@@ -161,6 +193,7 @@ func TestGetGroupMemberProfile(t *testing.T) {
 		Want         want
 	}{
 		{
+			Label:        "Success",
 			GroupID:      "cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 			UserID:       "U0047556f2e40dba2456887320ba7c76d",
 			ResponseCode: 200,
@@ -177,7 +210,7 @@ func TestGetGroupMemberProfile(t *testing.T) {
 			},
 		},
 		{
-			// Internal server error
+			Label:        "Internal server error",
 			GroupID:      "cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 			UserID:       "U0047556f2e40dba2456887320ba7c76d",
 			ResponseCode: 500,
@@ -213,25 +246,36 @@ func TestGetGroupMemberProfile(t *testing.T) {
 		w.Write(tc.Response)
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected Data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i, tc := range testCases {
 		currentTestIdx = i
-		res, err := client.GetGroupMemberProfile(tc.GroupID, tc.UserID).Do()
-		if tc.Want.Error != nil {
-			if !reflect.DeepEqual(err, tc.Want.Error) {
-				t.Errorf("Error %d %v; want %v", i, err, tc.Want.Error)
+		t.Run(strconv.Itoa(i)+"/"+tc.Label, func(t *testing.T) {
+			res, err := client.GetGroupMemberProfile(tc.GroupID, tc.UserID).Do()
+			if tc.Want.Error != nil {
+				if !reflect.DeepEqual(err, tc.Want.Error) {
+					t.Errorf("Error %v; want %v", err, tc.Want.Error)
+				}
+			} else {
+				if err != nil {
+					t.Error(err)
+				}
 			}
-		} else {
-			if err != nil {
-				t.Error(err)
+			if !reflect.DeepEqual(res, tc.Want.Response) {
+				t.Errorf("Response %v; want %v", res, tc.Want.Response)
 			}
-		}
-		if !reflect.DeepEqual(res, tc.Want.Response) {
-			t.Errorf("Response %d %v; want %v", i, res, tc.Want.Response)
-		}
+		})
 	}
 }
 
@@ -242,16 +286,23 @@ func TestGetGroupMemberProfileWithContext(t *testing.T) {
 		w.Write([]byte("{}"))
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected Data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Millisecond)
 	defer cancel()
 	_, err = client.GetGroupMemberProfile("cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "U0047556f2e40dba2456887320ba7c76d").WithContext(ctx).Do()
-	if err != context.DeadlineExceeded {
-		t.Errorf("err %v; want %v", err, context.DeadlineExceeded)
-	}
+	expectCtxDeadlineExceed(ctx, err, t)
 }
 
 func BenchmarkGetGroupMemberProfile(b *testing.B) {
@@ -260,7 +311,16 @@ func BenchmarkGetGroupMemberProfile(b *testing.B) {
 		w.Write([]byte(`{"userId":"U","displayName":"A","pictureUrl":"https://","statusMessage":"B"}`))
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		b.Error("Unexpected Data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -278,6 +338,7 @@ func TestGetRoomMemberProfile(t *testing.T) {
 		Error       error
 	}
 	var testCases = []struct {
+		Label        string
 		RoomID       string
 		UserID       string
 		ResponseCode int
@@ -285,6 +346,7 @@ func TestGetRoomMemberProfile(t *testing.T) {
 		Want         want
 	}{
 		{
+			Label:        "Success",
 			RoomID:       "cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 			UserID:       "U0047556f2e40dba2456887320ba7c76d",
 			ResponseCode: 200,
@@ -301,7 +363,7 @@ func TestGetRoomMemberProfile(t *testing.T) {
 			},
 		},
 		{
-			// Internal server error
+			Label:        "Internal server error",
 			RoomID:       "cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 			UserID:       "U0047556f2e40dba2456887320ba7c76d",
 			ResponseCode: 500,
@@ -337,25 +399,36 @@ func TestGetRoomMemberProfile(t *testing.T) {
 		w.Write(tc.Response)
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected Data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i, tc := range testCases {
 		currentTestIdx = i
-		res, err := client.GetRoomMemberProfile(tc.RoomID, tc.UserID).Do()
-		if tc.Want.Error != nil {
-			if !reflect.DeepEqual(err, tc.Want.Error) {
-				t.Errorf("Error %d %v; want %v", i, err, tc.Want.Error)
+		t.Run(strconv.Itoa(i)+"/"+tc.Label, func(t *testing.T) {
+			res, err := client.GetRoomMemberProfile(tc.RoomID, tc.UserID).Do()
+			if tc.Want.Error != nil {
+				if !reflect.DeepEqual(err, tc.Want.Error) {
+					t.Errorf("Error %v; want %v", err, tc.Want.Error)
+				}
+			} else {
+				if err != nil {
+					t.Error(err)
+				}
 			}
-		} else {
-			if err != nil {
-				t.Error(err)
+			if !reflect.DeepEqual(res, tc.Want.Response) {
+				t.Errorf("Response %v; want %v", res, tc.Want.Response)
 			}
-		}
-		if !reflect.DeepEqual(res, tc.Want.Response) {
-			t.Errorf("Response %d %v; want %v", i, res, tc.Want.Response)
-		}
+		})
 	}
 }
 
@@ -366,16 +439,23 @@ func TestGetRoomMemberProfileWithContext(t *testing.T) {
 		w.Write([]byte("{}"))
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected Data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		t.Fatal(err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Millisecond)
 	defer cancel()
 	_, err = client.GetRoomMemberProfile("cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "U0047556f2e40dba2456887320ba7c76d").WithContext(ctx).Do()
-	if err != context.DeadlineExceeded {
-		t.Errorf("err %v; want %v", err, context.DeadlineExceeded)
-	}
+	expectCtxDeadlineExceed(ctx, err, t)
 }
 
 func BenchmarkGetRoomMemberProfile(b *testing.B) {
@@ -384,7 +464,16 @@ func BenchmarkGetRoomMemberProfile(b *testing.B) {
 		w.Write([]byte(`{"userId":"U","displayName":"A","pictureUrl":"https://","statusMessage":"B"}`))
 	}))
 	defer server.Close()
-	client, err := mockClient(server)
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		b.Error("Unexpected Data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
 	if err != nil {
 		b.Fatal(err)
 	}

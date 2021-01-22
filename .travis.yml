@@ -3,6 +3,7 @@ go:
   - '1.10'
   - '1.11'
   - '1.12'
+  - '1.13'
   - tip
 sudo: false
 
@@ -10,6 +11,9 @@ install:
   - go get golang.org/x/lint/golint
 
 script:
-  - go test -v -race ./...
+  - bash script/codecov.sh
   - go vet $(go list ./... | grep -v /examples/)
   - golint --set_exit_status ./...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

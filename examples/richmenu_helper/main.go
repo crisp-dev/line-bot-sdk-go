@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+	"io"
 	"log"
 	"os"
 
@@ -24,7 +25,7 @@ import (
 
 func main() {
 	var (
-		mode     = flag.String("mode", "list", "mode of richmenu helper [list|create|link|unlink|get|delete|upload|download]")
+		mode     = flag.String("mode", "list", "mode of richmenu helper [list|create|link|unlink|bulklink|bulkunlink|get|delete|upload|download]")
 		uid      = flag.String("uid", "", "user id")
 		rid      = flag.String("rid", "", "richmenu id")
 		filePath = flag.String("image.path", "", "path to image, used in upload/download mode")
@@ -43,12 +44,35 @@ func main() {
 		if _, err = bot.UploadRichMenuImage(*rid, *filePath).Do(); err != nil {
 			log.Fatal(err)
 		}
+	case "download":
+		res, err := bot.DownloadRichMenuImage(*rid).Do()
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer res.Content.Close()
+		f, err := os.OpenFile(*filePath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = io.Copy(f, res.Content)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Image is written to %s", *filePath)
 	case "link":
 		if _, err = bot.LinkUserRichMenu(*uid, *rid).Do(); err != nil {
 			log.Fatal(err)
 		}
 	case "unlink":
 		if _, err = bot.UnlinkUserRichMenu(*uid).Do(); err != nil {
+			log.Fatal(err)
+		}
+	case "bulklink":
+		if _, err = bot.BulkLinkRichMenu(*rid, *uid).Do(); err != nil {
+			log.Fatal(err)
+		}
+	case "bulkunlink":
+		if _, err = bot.BulkUnlinkRichMenu(*uid).Do(); err != nil {
 			log.Fatal(err)
 		}
 	case "list":

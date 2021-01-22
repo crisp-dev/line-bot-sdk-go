@@ -130,7 +130,7 @@ func (call *GetRichMenuCall) WithContext(ctx context.Context) *GetRichMenuCall {
 // Do method
 func (call *GetRichMenuCall) Do() (*RichMenuResponse, error) {
 	endpoint := fmt.Sprintf(APIEndpointGetRichMenu, call.richMenuID)
-	res, err := call.c.get(call.ctx, endpoint, nil)
+	res, err := call.c.get(call.ctx, call.c.endpointBase, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (call *GetUserRichMenuCall) WithContext(ctx context.Context) *GetUserRichMe
 // Do method
 func (call *GetUserRichMenuCall) Do() (*RichMenuResponse, error) {
 	endpoint := fmt.Sprintf(APIEndpointGetUserRichMenu, call.userID)
-	res, err := call.c.get(call.ctx, endpoint, nil)
+	res, err := call.c.get(call.ctx, call.c.endpointBase, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +408,7 @@ func (call *GetDefaultRichMenuCall) WithContext(ctx context.Context) *GetDefault
 
 // Do method
 func (call *GetDefaultRichMenuCall) Do() (*RichMenuIDResponse, error) {
-	res, err := call.c.get(call.ctx, APIEndpointDefaultRichMenu, nil)
+	res, err := call.c.get(call.ctx, call.c.endpointBase, APIEndpointDefaultRichMenu, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -437,7 +437,7 @@ func (call *GetRichMenuListCall) WithContext(ctx context.Context) *GetRichMenuLi
 
 // Do method
 func (call *GetRichMenuListCall) Do() ([]*RichMenuResponse, error) {
-	res, err := call.c.get(call.ctx, APIEndpointListRichMenu, nil)
+	res, err := call.c.get(call.ctx, call.c.endpointBase, APIEndpointListRichMenu, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -470,7 +470,7 @@ func (call *DownloadRichMenuImageCall) WithContext(ctx context.Context) *Downloa
 // Do method
 func (call *DownloadRichMenuImageCall) Do() (*MessageContentResponse, error) {
 	endpoint := fmt.Sprintf(APIEndpointDownloadRichMenuImage, call.richMenuID)
-	res, err := call.c.get(call.ctx, endpoint, nil)
+	res, err := call.c.get(call.ctx, call.c.endpointBaseData, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -520,13 +520,107 @@ func (call *UploadRichMenuImageCall) Do() (*BasicResponse, error) {
 	}
 	body.Seek(0, 0)
 	endpoint := fmt.Sprintf(APIEndpointUploadRichMenuImage, call.richMenuID)
-	req, err := http.NewRequest("POST", call.c.url(endpoint), body)
+	req, err := http.NewRequest("POST", call.c.url(call.c.endpointBaseData, endpoint), body)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", http.DetectContentType(buf[:n]))
 	req.ContentLength = fi.Size()
 	res, err := call.c.do(call.ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	defer closeResponse(res)
+	return decodeToBasicResponse(res)
+}
+
+// BulkLinkRichMenu method
+func (client *Client) BulkLinkRichMenu(richMenuID string, userIDs ...string) *BulkLinkRichMenuCall {
+	return &BulkLinkRichMenuCall{
+		c:          client,
+		userIDs:    userIDs,
+		richMenuID: richMenuID,
+	}
+}
+
+// BulkLinkRichMenuCall type
+type BulkLinkRichMenuCall struct {
+	c   *Client
+	ctx context.Context
+
+	userIDs    []string
+	richMenuID string
+}
+
+// WithContext method
+func (call *BulkLinkRichMenuCall) WithContext(ctx context.Context) *BulkLinkRichMenuCall {
+	call.ctx = ctx
+	return call
+}
+
+func (call *BulkLinkRichMenuCall) encodeJSON(w io.Writer) error {
+	enc := json.NewEncoder(w)
+	return enc.Encode(&struct {
+		RichMenuID string   `json:"richMenuId"`
+		UserIDs    []string `json:"userIds"`
+	}{
+		RichMenuID: call.richMenuID,
+		UserIDs:    call.userIDs,
+	})
+}
+
+// Do method
+func (call *BulkLinkRichMenuCall) Do() (*BasicResponse, error) {
+	var buf bytes.Buffer
+	if err := call.encodeJSON(&buf); err != nil {
+		return nil, err
+	}
+	res, err := call.c.post(call.ctx, APIEndpointBulkLinkRichMenu, &buf)
+	if err != nil {
+		return nil, err
+	}
+	defer closeResponse(res)
+	return decodeToBasicResponse(res)
+}
+
+// BulkUnlinkRichMenu method
+func (client *Client) BulkUnlinkRichMenu(userIDs ...string) *BulkUnlinkRichMenuCall {
+	return &BulkUnlinkRichMenuCall{
+		c:       client,
+		userIDs: userIDs,
+	}
+}
+
+// BulkUnlinkRichMenuCall type
+type BulkUnlinkRichMenuCall struct {
+	c   *Client
+	ctx context.Context
+
+	userIDs []string
+}
+
+// WithContext method
+func (call *BulkUnlinkRichMenuCall) WithContext(ctx context.Context) *BulkUnlinkRichMenuCall {
+	call.ctx = ctx
+	return call
+}
+
+func (call *BulkUnlinkRichMenuCall) encodeJSON(w io.Writer) error {
+	enc := json.NewEncoder(w)
+	return enc.Encode(&struct {
+		UserIDs []string `json:"userIds"`
+	}{
+		UserIDs: call.userIDs,
+	})
+}
+
+// Do method
+func (call *BulkUnlinkRichMenuCall) Do() (*BasicResponse, error) {
+	var buf bytes.Buffer
+	if err := call.encodeJSON(&buf); err != nil {
+		return nil, err
+	}
+	res, err := call.c.post(call.ctx, APIEndpointBulkUnlinkRichMenu, &buf)
 	if err != nil {
 		return nil, err
 	}
