@@ -51,6 +51,12 @@ type UserProfileResponse struct {
 	Language      string `json:"language"`
 }
 
+// UserIDsResponse type
+type UserIDsResponse struct {
+	UserIDs []string `json:"userIds"`
+	Next    string   `json:"next"`
+}
+
 // GroupSummaryResponse type
 type GroupSummaryResponse struct {
 	GroupID    string `json:"groupId"`
@@ -136,6 +142,8 @@ type MessagesProgressResponse struct {
 	TargetCount       int64  `json:"targetCount"`
 	FailedDescription string `json:"failedDescription"`
 	ErrorCode         int    `json:"errorCode"`
+	AcceptedTime      string `json:"acceptedTime"`
+	CompletedTime     string `json:"completedTime,omitempty"`
 }
 
 // MessagesFriendDemographicsResponse type
@@ -236,6 +244,12 @@ type RichMenuResponse struct {
 	Areas       []AreaDetail `json:"areas"`
 }
 
+// RichMenuAliasResponse type
+type RichMenuAliasResponse struct {
+	RichMenuAliasID string `json:"richMenuAliasId"`
+	RichMenuID      string `json:"richMenuId"`
+}
+
 // LIFFAppsResponse type
 type LIFFAppsResponse struct {
 	Apps []LIFFApp `json:"apps"`
@@ -254,7 +268,7 @@ type LinkTokenResponse struct {
 // WebhookInfoResponse type
 type WebhookInfoResponse struct {
 	Endpoint string `json:"endpoint"`
-	Active   string `json:"active"`
+	Active   bool   `json:"active"`
 }
 
 // isSuccess checks if status code is 2xx: The action was successfully received,
@@ -329,6 +343,18 @@ func decodeToUserProfileResponse(res *http.Response) (*UserProfileResponse, erro
 		return nil, err
 	}
 	return &result, nil
+}
+
+func decodeToUserIDsResponse(res *http.Response) (*UserIDsResponse, error) {
+	if err := checkResponse(res); err != nil {
+		return nil, err
+	}
+	decoder := json.NewDecoder(res.Body)
+	result := &UserIDsResponse{}
+	if err := decoder.Decode(result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func decodeToGroupSummaryResponse(res *http.Response) (*GroupSummaryResponse, error) {
@@ -436,7 +462,7 @@ func decodeToRichMenuListResponse(res *http.Response) ([]*RichMenuResponse, erro
 		return nil, err
 	}
 	decoder := json.NewDecoder(res.Body)
-	var result = struct {
+	result := struct {
 		RichMenus []*RichMenuResponse `json:"richmenus"`
 	}{}
 	if err := decoder.Decode(&result); err != nil {
@@ -455,6 +481,32 @@ func decodeToRichMenuIDResponse(res *http.Response) (*RichMenuIDResponse, error)
 		return nil, err
 	}
 	return &result, nil
+}
+
+func decodeToRichMenuAliasResponse(res *http.Response) (*RichMenuAliasResponse, error) {
+	if err := checkResponse(res); err != nil {
+		return nil, err
+	}
+	decoder := json.NewDecoder(res.Body)
+	result := RichMenuAliasResponse{}
+	if err := decoder.Decode(&result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func decodeToRichMenuAliasListResponse(res *http.Response) ([]*RichMenuAliasResponse, error) {
+	if err := checkResponse(res); err != nil {
+		return nil, err
+	}
+	decoder := json.NewDecoder(res.Body)
+	result := struct {
+		Aliases []*RichMenuAliasResponse `json:"aliases"`
+	}{}
+	if err := decoder.Decode(&result); err != nil {
+		return nil, err
+	}
+	return result.Aliases, nil
 }
 
 func decodeToLIFFResponse(res *http.Response) (*LIFFAppsResponse, error) {
@@ -601,7 +653,7 @@ func decodeToAccessTokensResponse(res *http.Response) (*AccessTokensResponse, er
 	return &result, nil
 }
 
-func decodeToTestWebhookResponsee(res *http.Response) (*TestWebhookResponse, error) {
+func decodeToTestWebhookResponse(res *http.Response) (*TestWebhookResponse, error) {
 	if err := checkResponse(res); err != nil {
 		return nil, err
 	}

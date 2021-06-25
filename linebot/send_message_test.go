@@ -26,13 +26,13 @@ import (
 )
 
 func TestPushMessages(t *testing.T) {
-	var toUserID = "U0cc15697597f61dd8b01cea8b027050e"
+	toUserID := "U0cc15697597f61dd8b01cea8b027050e"
 	type want struct {
 		RequestBody []byte
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label        string
 		Messages     []SendingMessage
 		Response     []byte
@@ -429,13 +429,15 @@ func TestPushMessages(t *testing.T) {
 						NewQuickReplyButton("https://example.com/sushi.png", NewMessageAction("Sushi", "Sushi")),
 						NewQuickReplyButton("https://example.com/tempura.png", NewMessageAction("Tempura", "Tempura")),
 						NewQuickReplyButton("", NewLocationAction("Send location")),
+						NewQuickReplyButton("", NewCameraAction("Open camera")),
+						NewQuickReplyButton("", NewURIAction("Phone order", "tel:09001234567")),
 					),
 				),
 			},
 			ResponseCode: 200,
 			Response:     []byte(`{}`),
 			Want: want{
-				RequestBody: []byte(`{"to":"U0cc15697597f61dd8b01cea8b027050e","messages":[{"type":"text","text":"Select your favorite food category or send me your location!","quickReply":{"items":[{"type":"action","imageUrl":"https://example.com/sushi.png","action":{"type":"message","label":"Sushi","text":"Sushi"}},{"type":"action","imageUrl":"https://example.com/tempura.png","action":{"type":"message","label":"Tempura","text":"Tempura"}},{"type":"action","action":{"type":"location","label":"Send location"}}]}}]}` + "\n"),
+				RequestBody: []byte(`{"to":"U0cc15697597f61dd8b01cea8b027050e","messages":[{"type":"text","text":"Select your favorite food category or send me your location!","quickReply":{"items":[{"type":"action","imageUrl":"https://example.com/sushi.png","action":{"type":"message","label":"Sushi","text":"Sushi"}},{"type":"action","imageUrl":"https://example.com/tempura.png","action":{"type":"message","label":"Tempura","text":"Tempura"}},{"type":"action","action":{"type":"location","label":"Send location"}},{"type":"action","action":{"type":"camera","label":"Open camera"}},{"type":"action","action":{"type":"uri","label":"Phone order","uri":"tel:09001234567"}}]}}]}` + "\n"),
 				Response:    &BasicResponse{},
 			},
 		},
@@ -559,13 +561,13 @@ func TestPushMessagesWithContext(t *testing.T) {
 }
 
 func TestReplyMessages(t *testing.T) {
-	var replyToken = "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA"
+	replyToken := "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA"
 	type want struct {
 		RequestBody []byte
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label        string
 		Messages     []SendingMessage
 		Response     []byte
@@ -722,7 +724,7 @@ func TestReplyMessagesWithContext(t *testing.T) {
 }
 
 func TestMulticastMessages(t *testing.T) {
-	var toUserIDs = []string{
+	toUserIDs := []string{
 		"U0cc15697597f61dd8b01cea8b027050e",
 		"U38ecbecfade326557b6971140741a4a6",
 	}
@@ -731,7 +733,7 @@ func TestMulticastMessages(t *testing.T) {
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label        string
 		Messages     []SendingMessage
 		Response     []byte
@@ -893,7 +895,7 @@ func TestBroadcastMessages(t *testing.T) {
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Messages     []SendingMessage
 		Response     []byte
 		ResponseCode int
@@ -1532,7 +1534,7 @@ func TestMessagesWithNotificationDisabled(t *testing.T) {
 	type testMethod interface {
 		Do() (*BasicResponse, error)
 	}
-	var toUserIDs = []string{
+	toUserIDs := []string{
 		"U0cc15697597f61dd8b01cea8b027050e",
 		"U38ecbecfade326557b6971140741a4a6",
 	}
@@ -1541,7 +1543,7 @@ func TestMessagesWithNotificationDisabled(t *testing.T) {
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label        string
 		TestMethod   testMethod
 		Messages     []SendingMessage
@@ -1651,7 +1653,7 @@ func TestNarrowcastMessages(t *testing.T) {
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label              string
 		Messages           []SendingMessage
 		Recipient          Recipient
@@ -1859,18 +1861,18 @@ func TestMessagesWithRetryKey(t *testing.T) {
 	type testMethod interface {
 		Do() (*BasicResponse, error)
 	}
-	var toUserIDs = []string{
+	toUserIDs := []string{
 		"U0cc15697597f61dd8b01cea8b027050e",
 		"U38ecbecfade326557b6971140741a4a6",
 	}
-	var msgUUIDs string = "123e4567-e89b-12d3-a456-426655440002"
+	var msgUUIDs = "123e4567-e89b-12d3-a456-426655440002"
 
 	type want struct {
 		RequestBody []byte
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label        string
 		TestMethod   testMethod
 		Messages     []SendingMessage

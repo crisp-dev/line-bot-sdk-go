@@ -34,7 +34,7 @@ func TestGetRichMenu(t *testing.T) {
 		Response    *RichMenuResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label        string
 		UserID       string
 		RichMenuID   string
@@ -152,7 +152,7 @@ func TestCreateRichMenu(t *testing.T) {
 		Response    *RichMenuIDResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Request      RichMenu
 		Response     []byte
 		ResponseCode int
@@ -167,14 +167,14 @@ func TestCreateRichMenu(t *testing.T) {
 				Areas: []AreaDetail{
 					{
 						Bounds: RichMenuBounds{X: 0, Y: 0, Width: 2500, Height: 1686},
-						Action: RichMenuAction{Type: RichMenuActionTypePostback, Data: "action=buy&itemid=123"},
+						Action: RichMenuAction{Type: RichMenuActionTypePostback, Data: "action=buy&itemid=123", DisplayText: "Buy", Label: "Buy"},
 					},
 				},
 			},
 			ResponseCode: 200,
 			Response:     []byte(`{"richMenuId":"abcefg"}`),
 			Want: want{
-				RequestBody: []byte(`{"size":{"width":2500,"height":1686},"selected":false,"name":"Menu1","chatBarText":"ChatText","areas":[{"bounds":{"x":0,"y":0,"width":2500,"height":1686},"action":{"type":"postback","data":"action=buy\u0026itemid=123"}}]}` + "\n"),
+				RequestBody: []byte(`{"size":{"width":2500,"height":1686},"selected":false,"name":"Menu1","chatBarText":"ChatText","areas":[{"bounds":{"x":0,"y":0,"width":2500,"height":1686},"action":{"type":"postback","displayText":"Buy","label":"Buy","data":"action=buy\u0026itemid=123"}}]}` + "\n"),
 				Response:    &RichMenuIDResponse{RichMenuID: "abcefg"},
 			},
 		},
@@ -244,7 +244,7 @@ func TestLinkRichMenu(t *testing.T) {
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		RichMenuID   string
 		UserID       string
 		ResponseCode int
@@ -341,7 +341,7 @@ func TestDefaultRichMenu(t *testing.T) {
 		Response    interface{}
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		TestMethod   testMethod
 		RichMenuID   string
 		ResponseCode int
@@ -452,7 +452,7 @@ func TestListRichMenu(t *testing.T) {
 		Response    []*RichMenuResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		ResponseCode int
 		Response     []byte
 		Want         want
@@ -569,7 +569,7 @@ func TestBulkRichMenu(t *testing.T) {
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		UserIDs      []string
 		RichMenuID   string
 		ResponseCode int
@@ -669,7 +669,7 @@ func TestUploadRichMenuImage(t *testing.T) {
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		RichMenuID   string
 		ImagePath    string
 		ResponseCode int
@@ -764,7 +764,7 @@ func TestDownloadRichMenuImage(t *testing.T) {
 		Response *MessageContentResponse
 		Error    error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		RichMenuID     string
 		ImagePath      string
 		Response       []byte
@@ -852,6 +852,250 @@ func TestDownloadRichMenuImage(t *testing.T) {
 				tc.Want.Response.Content = nil
 				if !reflect.DeepEqual(res, tc.Want.Response) {
 					t.Errorf("Response\n %+v; want\n %+v", res, tc.Want.Response)
+				}
+			}
+		})
+	}
+}
+
+// Test method for CreateRichMenuAlias
+func (call *CreateRichMenuAliasCall) Test() {
+}
+
+// Test method for GetRichMenuAlias
+func (call *GetRichMenuAliasCall) Test() {
+}
+
+// Test method for UpdateRichMenuAlias
+func (call *UpdateRichMenuAliasCall) Test() {
+}
+
+// Test method for DeleteRichMenuAlias
+func (call *DeleteRichMenuAliasCall) Test() {
+}
+
+// TestCRUDRichMenuAlias tests CreateRichMenuAlias, GetRichMenuAlias, UpdateRichMenuAlias, DeleteRichMenuAlias
+func TestCRUDRichMenuAlias(t *testing.T) {
+	type testMethod interface {
+		Test()
+	}
+	type want struct {
+		URLPath    string
+		HTTPMethod string
+		Response   interface{}
+		Error      error
+	}
+	testCases := []struct {
+		TestMethod      testMethod
+		RichMenuID      string
+		RichMenuAliasID string
+		ResponseCode    int
+		Response        []byte
+		Want            want
+	}{
+		{
+			RichMenuID:      "654321",
+			RichMenuAliasID: "richmenu-alias-create",
+			TestMethod:      new(CreateRichMenuAliasCall),
+			ResponseCode:    200,
+			Response:        []byte(`{}`),
+			Want: want{
+				HTTPMethod: http.MethodPost,
+				URLPath:    APIEndpointCreateRichMenuAlias,
+				Response:   &BasicResponse{},
+			},
+		},
+		{
+			RichMenuID:      "N/A",
+			RichMenuAliasID: "richmenu-alias-get",
+			TestMethod:      new(GetRichMenuAliasCall),
+			ResponseCode:    200,
+			Response:        []byte(`{"richMenuAliasId":"richmenu-alias-get","richMenuId":"richmenu-88c05ef6921ae53f8b58a25f3a65faf7"}`),
+			Want: want{
+				HTTPMethod: http.MethodGet,
+				URLPath:    fmt.Sprintf(APIEndpointGetRichMenuAlias, "richmenu-alias-get"),
+				Response:   &RichMenuAliasResponse{RichMenuAliasID: "richmenu-alias-get", RichMenuID: "richmenu-88c05ef6921ae53f8b58a25f3a65faf7"},
+			},
+		},
+		{
+			RichMenuID:      "123456",
+			RichMenuAliasID: "richmenu-alias-update",
+			TestMethod:      new(UpdateRichMenuAliasCall),
+			ResponseCode:    200,
+			Response:        []byte(`{}`),
+			Want: want{
+				HTTPMethod: http.MethodPost,
+				URLPath:    fmt.Sprintf(APIEndpointGetRichMenuAlias, "richmenu-alias-update"),
+				Response:   &BasicResponse{},
+			},
+		},
+		{
+			RichMenuID:      "N/A",
+			RichMenuAliasID: "richmenu-alias-delete",
+			TestMethod:      new(DeleteRichMenuAliasCall),
+			ResponseCode:    200,
+			Response:        []byte(`{}`),
+			Want: want{
+				HTTPMethod: http.MethodDelete,
+				URLPath:    fmt.Sprintf(APIEndpointDeleteRichMenuAlias, "richmenu-alias-delete"),
+				Response:   &BasicResponse{},
+			},
+		},
+	}
+
+	var currentTestIdx int
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		tc := testCases[currentTestIdx]
+		if r.Method != tc.Want.HTTPMethod {
+			t.Errorf("Method %s; want %s", r.Method, tc.Want.HTTPMethod)
+		}
+		if r.URL.Path != tc.Want.URLPath {
+			t.Errorf("URLPath %s; want %s", r.URL.Path, tc.Want.URLPath)
+		}
+		_, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		w.WriteHeader(tc.ResponseCode)
+		w.Write(tc.Response)
+	}))
+	defer server.Close()
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var res interface{}
+	for i, tc := range testCases {
+		currentTestIdx = i
+		t.Run(strconv.Itoa(i)+"/"+tc.RichMenuAliasID+"."+string(tc.Response), func(t *testing.T) {
+			switch tc.TestMethod.(type) {
+			case *CreateRichMenuAliasCall:
+				res, err = client.CreateRichMenuAlias(tc.RichMenuAliasID, tc.RichMenuID).Do()
+			case *GetRichMenuAliasCall:
+				res, err = client.GetRichMenuAlias(tc.RichMenuAliasID).Do()
+			case *UpdateRichMenuAliasCall:
+				res, err = client.UpdateRichMenuAlias(tc.RichMenuAliasID, tc.RichMenuID).Do()
+			case *DeleteRichMenuAliasCall:
+				res, err = client.DeleteRichMenuAlias(tc.RichMenuAliasID).Do()
+			}
+			if tc.Want.Error != nil {
+				if !reflect.DeepEqual(err, tc.Want.Error) {
+					t.Errorf("Error %v; want %v", err, tc.Want.Error)
+				}
+			} else {
+				if err != nil {
+					t.Error(err)
+				}
+			}
+			if tc.Want.Response != nil {
+				if !reflect.DeepEqual(res, tc.Want.Response) {
+					t.Errorf("Response %v; want %v", res, tc.Want.Response)
+				}
+			}
+		})
+	}
+}
+
+// TestListRichMenuAlias
+func TestListRichMenuAlias(t *testing.T) {
+	type want struct {
+		URLPath  string
+		Response []*RichMenuAliasResponse
+		Error    error
+	}
+	testCases := []struct {
+		ResponseCode int
+		Response     []byte
+		Want         want
+	}{
+		{
+			ResponseCode: 200,
+			Response: []byte(`{"aliases":[` +
+				`{"richMenuAliasId":"richmenu-alias-a","richMenuId": "richmenu-862e6ad6c267d2ddf3f42bc78554f6a4"},` +
+				`{"richMenuAliasId": "richmenu-alias-b","richMenuId": "richmenu-88c05ef6921ae53f8b58a25f3a65faf7"}` +
+				`]}`),
+			Want: want{
+				URLPath: APIEndpointListRichMenuAlias,
+				Response: []*RichMenuAliasResponse{
+					{
+						RichMenuAliasID: "richmenu-alias-a",
+						RichMenuID:      "richmenu-862e6ad6c267d2ddf3f42bc78554f6a4",
+					},
+					{
+						RichMenuAliasID: "richmenu-alias-b",
+						RichMenuID:      "richmenu-88c05ef6921ae53f8b58a25f3a65faf7",
+					},
+				},
+			},
+		},
+		{
+			ResponseCode: 200,
+			Response: []byte(`{"aliases":[` +
+				`]}`),
+			Want: want{
+				URLPath:  APIEndpointListRichMenuAlias,
+				Response: []*RichMenuAliasResponse{},
+			},
+		},
+	}
+
+	var currentTestIdx int
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		tc := testCases[currentTestIdx]
+		if r.Method != http.MethodGet {
+			t.Errorf("Method %s; want %s", r.Method, http.MethodGet)
+		}
+		if r.URL.Path != tc.Want.URLPath {
+			t.Errorf("URLPath %s; want %s", r.URL.Path, tc.Want.URLPath)
+		}
+		_, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		w.WriteHeader(tc.ResponseCode)
+		w.Write(tc.Response)
+	}))
+	defer server.Close()
+
+	dataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		t.Error("Unexpected data API call")
+		w.WriteHeader(404)
+		w.Write([]byte(`{"message":"Not found"}`))
+	}))
+	defer dataServer.Close()
+
+	client, err := mockClient(server, dataServer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i, tc := range testCases {
+		currentTestIdx = i
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			res, err := client.GetRichMenuAliasList().Do()
+			if tc.Want.Error != nil {
+				if !reflect.DeepEqual(err, tc.Want.Error) {
+					t.Errorf("Error %v; want %v", err, tc.Want.Error)
+				}
+			} else {
+				if err != nil {
+					t.Error(err)
+				}
+			}
+			if tc.Want.Response != nil {
+				if !reflect.DeepEqual(res, tc.Want.Response) {
+					t.Errorf("Response\n %v; want\n %v", res, tc.Want.Response)
 				}
 			}
 		})

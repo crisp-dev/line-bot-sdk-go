@@ -41,6 +41,7 @@ const (
 	APIEndpointLeaveGroup                 = "/v2/bot/group/%s/leave"
 	APIEndpointLeaveRoom                  = "/v2/bot/room/%s/leave"
 	APIEndpointGetProfile                 = "/v2/bot/profile/%s"
+	APIEndpointGetFollowerIDs             = "/v2/bot/followers/ids"
 	APIEndpointGetGroupMemberProfile      = "/v2/bot/group/%s/member/%s"
 	APIEndpointGetRoomMemberProfile       = "/v2/bot/room/%s/member/%s"
 	APIEndpointGetGroupMemberIDs          = "/v2/bot/group/%s/members/ids"
@@ -61,6 +62,12 @@ const (
 	APIEndpointUploadRichMenuImage        = "/v2/bot/richmenu/%s/content" // Download: GET / Upload: POST
 	APIEndpointBulkLinkRichMenu           = "/v2/bot/richmenu/bulk/link"
 	APIEndpointBulkUnlinkRichMenu         = "/v2/bot/richmenu/bulk/unlink"
+
+	APIEndpointCreateRichMenuAlias = "/v2/bot/richmenu/alias"
+	APIEndpointGetRichMenuAlias    = "/v2/bot/richmenu/alias/%s"
+	APIEndpointUpdateRichMenuAlias = "/v2/bot/richmenu/alias/%s"
+	APIEndpointDeleteRichMenuAlias = "/v2/bot/richmenu/alias/%s"
+	APIEndpointListRichMenuAlias   = "/v2/bot/richmenu/alias/list"
 
 	APIEndpointGetAllLIFFApps = "/liff/v1/apps"
 	APIEndpointAddLIFFApp     = "/liff/v1/apps"
@@ -183,7 +190,6 @@ func (client *Client) do(ctx context.Context, req *http.Request) (*http.Response
 		req = req.WithContext(ctx)
 	}
 	return client.httpClient.Do(req)
-
 }
 
 func (client *Client) get(ctx context.Context, base *url.URL, endpoint string, query url.Values) (*http.Response, error) {
@@ -206,7 +212,7 @@ func (client *Client) post(ctx context.Context, endpoint string, body io.Reader)
 	return client.do(ctx, req)
 }
 
-func (client *Client) postform(ctx context.Context, endpoint string, body io.Reader) (*http.Response, error) {
+func (client *Client) postForm(ctx context.Context, endpoint string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest("POST", client.url(client.endpointBase, endpoint), body)
 	if err != nil {
 		return nil, err

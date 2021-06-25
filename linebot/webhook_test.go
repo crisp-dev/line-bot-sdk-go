@@ -70,6 +70,35 @@ var webhookTestRequestBody = `{
             "mode": "active",
             "timestamp": 1462629479859,
             "source": {
+                "type": "group",
+                "groupId": "u206d25c2ea6bd87c17655609a1c37cb8",
+                "userId": "u206d25c2ea6bd87c17655609a1c37cb8"
+            },
+            "message": {
+                "id": "325708",
+                "type": "text",
+                "text": "@openProfileUser Hello. @notOpenProfileUser Hello.",
+                "mention": {
+                    "mentionees": [
+                        {
+                            "index": 0,
+                            "length": 16,
+                            "userId": "U0047556f2e40dba2456887320ba7c76d"
+                        },
+                        {
+                            "index": 24,
+                            "length": 16
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "replyToken": "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA",
+            "type": "message",
+            "mode": "active",
+            "timestamp": 1462629479859,
+            "source": {
                 "type": "user",
                 "userId": "u206d25c2ea6bd87c17655609a1c37cb8"
             },
@@ -546,6 +575,34 @@ var webhookTestWantEvents = []*Event{
 		Mode:       EventModeActive,
 		Timestamp:  time.Date(2016, time.May, 7, 13, 57, 59, int(859*time.Millisecond), time.UTC),
 		Source: &EventSource{
+			Type:    EventSourceTypeGroup,
+			UserID:  "u206d25c2ea6bd87c17655609a1c37cb8",
+			GroupID: "u206d25c2ea6bd87c17655609a1c37cb8",
+		},
+		Message: &TextMessage{
+			ID:   "325708",
+			Text: "@openProfileUser Hello. @notOpenProfileUser Hello.",
+			Mention: &Mention{
+				Mentionees: []*Mentionee{
+					{
+						Index:  0,
+						Length: 16,
+						UserID: "U0047556f2e40dba2456887320ba7c76d",
+					},
+					{
+						Index:  24,
+						Length: 16,
+					},
+				},
+			},
+		},
+	},
+	{
+		ReplyToken: "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA",
+		Type:       EventTypeMessage,
+		Mode:       EventModeActive,
+		Timestamp:  time.Date(2016, time.May, 7, 13, 57, 59, int(859*time.Millisecond), time.UTC),
+		Source: &EventSource{
 			Type:   EventSourceTypeUser,
 			UserID: "u206d25c2ea6bd87c17655609a1c37cb8",
 		},
@@ -876,7 +933,7 @@ var webhookTestWantEvents = []*Event{
 				ResultCode:             ThingsResultCodeSuccess,
 				BLENotificationPayload: []byte(`AQ==`),
 				ActionResults: []*ThingsActionResult{
-					&ThingsActionResult{
+					{
 						Type: ThingsActionResultTypeBinary,
 						Data: []byte(`/w==`),
 					},
@@ -935,7 +992,7 @@ var webhookTestWantEvents = []*Event{
 			ID:   "325708",
 			Text: "Hello, world! (love)",
 			Emojis: []*Emoji{
-				&Emoji{Index: 14, Length: 6, ProductID: "5ac1bfd5040ab15980c9b435", EmojiID: "001"},
+				{Index: 14, Length: 6, ProductID: "5ac1bfd5040ab15980c9b435", EmojiID: "001"},
 			},
 		},
 	},
@@ -1016,7 +1073,7 @@ func TestParseRequest(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		req.Header.Set("X-Line-Signature", "invalidsignatue")
+		req.Header.Set("X-Line-Signature", "invalidSignature")
 		res, err := httpClient.Do(req)
 		if err != nil {
 			t.Fatal(err)
@@ -1104,7 +1161,7 @@ func TestGetWebhookInfo(t *testing.T) {
 		Response    *WebhookInfoResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label        string
 		ResponseCode int
 		Response     []byte
@@ -1113,13 +1170,13 @@ func TestGetWebhookInfo(t *testing.T) {
 		{
 			Label:        "Success",
 			ResponseCode: 200,
-			Response:     []byte(`{"endpoint":"https://example.herokuapp.com/test","active":"true"}`),
+			Response:     []byte(`{"endpoint":"https://example.herokuapp.com/test","active":true}`),
 			Want: want{
 				URLPath:     APIEndpointGetWebhookInfo,
 				RequestBody: []byte(""),
 				Response: &WebhookInfoResponse{
 					Endpoint: "https://example.herokuapp.com/test",
-					Active:   "true",
+					Active:   true,
 				},
 			},
 		},
@@ -1235,7 +1292,7 @@ func TestGetWebhookInfoWithContext(t *testing.T) {
 func BenchmarkGetWebhookInfo(b *testing.B) {
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
-		w.Write([]byte(`{"endpoint":"https://example.herokuapp.com/test","active":"true"}`))
+		w.Write([]byte(`{"endpoint":"https://example.herokuapp.com/test","active":true}`))
 	}))
 	defer server.Close()
 
@@ -1264,7 +1321,7 @@ func TestTestWebhook(t *testing.T) {
 		Response    *TestWebhookResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label        string
 		ResponseCode int
 		Response     []byte
@@ -1408,7 +1465,7 @@ func TestSetWebhookEndpointURL(t *testing.T) {
 		Response    *BasicResponse
 		Error       error
 	}
-	var testCases = []struct {
+	testCases := []struct {
 		Label        string
 		Endpoint     string
 		ResponseCode int

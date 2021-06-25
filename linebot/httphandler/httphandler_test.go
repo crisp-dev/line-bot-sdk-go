@@ -24,7 +24,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/line/line-bot-sdk-go/linebot"
+	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 var testRequestBody = `{
@@ -121,7 +121,7 @@ func TestWebhookHandler(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		req.Header.Set("X-LINE-Signature", "invalidsignatue")
+		req.Header.Set("X-LINE-Signature", "invalidSignature")
 		res, err := httpClient.Do(req)
 		if err != nil {
 			t.Fatal(err)

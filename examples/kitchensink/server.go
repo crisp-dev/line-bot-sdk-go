@@ -24,7 +24,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/line/line-bot-sdk-go/linebot"
+	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 func main() {
@@ -591,6 +591,9 @@ func (app *KitchenSink) handleText(message *linebot.TextMessage, replyToken stri
 					linebot.NewQuickReplyButton(
 						"",
 						linebot.NewLocationAction("Send location")),
+					linebot.NewQuickReplyButton(
+						"",
+						linebot.NewURIAction("LINE Developer", "https://developers.line.biz/")),
 				)),
 		).Do(); err != nil {
 			return err
@@ -724,11 +727,11 @@ func (app *KitchenSink) handleHeavyContent(messageID string, callback func(*os.F
 	}
 	defer content.Content.Close()
 	log.Printf("Got file: %s", content.ContentType)
-	originalConent, err := app.saveContent(content.Content)
+	originalContent, err := app.saveContent(content.Content)
 	if err != nil {
 		return err
 	}
-	return callback(originalConent)
+	return callback(originalContent)
 }
 
 func (app *KitchenSink) saveContent(content io.ReadCloser) (*os.File, error) {

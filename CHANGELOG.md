@@ -1,8 +1,64 @@
 # Changelog
 
+## [v7.9.1](https://github.com/line/line-bot-sdk-go/tree/v7.9.1) (2021-04-08)
+
+[Full Changelog](https://github.com/line/line-bot-sdk-go/compare/v7.9.0...v7.9.1)
+
+**Merged pull requests:**
+
+- upgrade major version to v7 for meets the specification of go module [\#273](https://github.com/line/line-bot-sdk-go/pull/273) ([stewart](https://github.com/wys1203))
+
+## [v7.9.0](https://github.com/line/line-bot-sdk-go/tree/v7.9.0) (2021-03-31)
+
+[Full Changelog](https://github.com/line/line-bot-sdk-go/compare/v7.8.0...v7.9.0)
+
+**Merged pull requests:**
+
+- Flex Message Update 2 - 1 [\#234](https://github.com/line/line-bot-sdk-go/pull/253) ([hinoguma](https://github.com/hinoguma))
+
+- chore: reformat the source code [\#254](https://github.com/line/line-bot-sdk-go/pull/254)([appleboy](https://github.com/appleboy))
+
+- support multiple type to hero [\#256](https://github.com/line/line-bot-sdk-go/pull/256)([ryota-sakamoto](https://github.com/ryota-sakamoto))
+
+- Partner API: Add get-follower-ids-api  [\#255](https://github.com/line/line-bot-sdk-go/pull/257)([hinoguma](https://github.com/hinoguma))
+
+- support postback type fields in richmenu action.  [\#259](https://github.com/line/line-bot-sdk-go/pull/259)([EthanChouTW](https://github.com/EthanChouTW))
+
+- Add generic request method.  [\#258](https://github.com/line/line-bot-sdk-go/pull/260)([tokuhirom](https://github.com/tokuhirom))
+
+- Drop golang 1.10 support. [\#263](https://github.com/line/line-bot-sdk-go/pull/263)([tokuhirom](https://github.com/tokuhirom))
+
+- Enable go mod. [\#264](https://github.com/line/line-bot-sdk-go/pull/264)([tokuhirom](https://github.com/tokuhirom))
+
+- Drop appengine example in the repo. [\#266](https://github.com/line/line-bot-sdk-go/pull/266)([tokuhirom](https://github.com/tokuhirom))
+
+- Messaging API 2021 March: Add URI action support to quick reply. [\#267](https://github.com/line/line-bot-sdk-go/pull/267)([clsung](https://github.com/clsung))
+
+
+- Drop travis-ci. [\#268](https://github.com/line/line-bot-sdk-go/pull/268)([tokuhirom](https://github.com/tokuhirom))
+
+- Support Flex Message Update 2-3: add background props to BoxComponent. [\#234](https://github.com/line/line-bot-sdk-go/pull/269)([hinoguma](https://github.com/hinoguma))
+
+## [v7.8.0](https://github.com/line/line-bot-sdk-go/tree/v7.8.0) (2021-02-17)
+
+[Full Changelog](https://github.com/line/line-bot-sdk-go/compare/v7.7.0...v7.8.0)
+
+**Merged pull requests:**
+
+- Add action props of box component and maxLines props of text component [\#174](https://github.com/line/line-bot-sdk-go/pull/231) ([hinoguma](https://github.com/hinoguma))
+
+- add default action to button template and carousel template  [\#211](https://github.com/line/line-bot-sdk-go/pull/243) ([hinoguma](https://github.com/hinoguma))
+
+- Messaging API - December 2020 update : Add keywords property to Sticker event  [\#245](https://github.com/line/line-bot-sdk-go/pull/246) ([
+Cheng-Lung Sung](https://github.com/clsung))
+
+- Messaging API - January 2021 update : Add mention props for text message [\#247](https://github.com/line/line-bot-sdk-go/pull/248) ([hinoguma](https://github.com/hinoguma))
+
+- Messaging API - January 2021 update : add acceptedTime and completedTime to MessagesProgressResponse [\#247](https://github.com/line/line-bot-sdk-go/pull/250) ([hinoguma](https://github.com/hinoguma))
+
 ## [v7.7.0](https://github.com/line/line-bot-sdk-go/tree/v7.7.0) (2020-11-27)
 
-[Full Changelog](https://github.com/line/line-bot-sdk-go/compare/v7.5.0...v7.6.0)
+[Full Changelog](https://github.com/line/line-bot-sdk-go/compare/v7.6.0...v7.7.0)
 
 **Merged pull requests:**
 

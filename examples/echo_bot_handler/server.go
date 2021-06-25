@@ -12,8 +12,6 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-// +build !appengine
-
 package main
 
 import (
@@ -21,8 +19,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/line/line-bot-sdk-go/linebot"
-	"github.com/line/line-bot-sdk-go/linebot/httphandler"
+	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"github.com/line/line-bot-sdk-go/v7/linebot/httphandler"
 )
 
 func main() {

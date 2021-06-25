@@ -133,7 +133,7 @@ type ThingsResult struct {
 // ThingsResultCode type
 type ThingsResultCode string
 
-// ThingsResultCode constsnts
+// ThingsResultCode constants
 const (
 	ThingsResultCodeSuccess      ThingsResultCode = "success"
 	ThingsResultCodeGattError    ThingsResultCode = "gatt_error"
@@ -149,7 +149,7 @@ type ThingsActionResult struct {
 // ThingsActionResultType type
 type ThingsActionResultType string
 
-// ThingsActionResultType contants
+// ThingsActionResultType constants
 const (
 	ThingsActionResultTypeBinary ThingsActionResultType = "binary"
 	ThingsActionResultTypeVoid   ThingsActionResultType = "void"
@@ -243,6 +243,7 @@ type rawEventMessage struct {
 	StickerResourceType StickerResourceType `json:"stickerResourceType,omitempty"`
 	Keywords            []string            `json:"keywords,omitempty"`
 	Emojis              []*Emoji            `json:"emojis,omitempty"`
+	Mention             *Mention            `json:"mention,omitempty"`
 }
 
 type rawBeaconEvent struct {
@@ -279,8 +280,8 @@ type rawThingsEvent struct {
 }
 
 const (
-	millisecPerSec     = int64(time.Second / time.Millisecond)
-	nanosecPerMillisec = int64(time.Millisecond / time.Nanosecond)
+	milliSecPerSec     = int64(time.Second / time.Millisecond)
+	nanoSecPerMilliSec = int64(time.Millisecond / time.Nanosecond)
 )
 
 // MarshalJSON method of Event
@@ -289,7 +290,7 @@ func (e *Event) MarshalJSON() ([]byte, error) {
 		ReplyToken:        e.ReplyToken,
 		Type:              e.Type,
 		Mode:              e.Mode,
-		Timestamp:         e.Timestamp.Unix()*millisecPerSec + int64(e.Timestamp.Nanosecond())/int64(time.Millisecond),
+		Timestamp:         e.Timestamp.Unix()*milliSecPerSec + int64(e.Timestamp.Nanosecond())/int64(time.Millisecond),
 		Source:            e.Source,
 		Postback:          e.Postback,
 		Unsend:            e.Unsend,
@@ -349,10 +350,11 @@ func (e *Event) MarshalJSON() ([]byte, error) {
 	switch m := e.Message.(type) {
 	case *TextMessage:
 		raw.Message = &rawEventMessage{
-			Type:   MessageTypeText,
-			ID:     m.ID,
-			Text:   m.Text,
-			Emojis: m.Emojis,
+			Type:    MessageTypeText,
+			ID:      m.ID,
+			Text:    m.Text,
+			Emojis:  m.Emojis,
+			Mention: m.Mention,
 		}
 	case *ImageMessage:
 		raw.Message = &rawEventMessage{
@@ -409,7 +411,7 @@ func (e *Event) UnmarshalJSON(body []byte) (err error) {
 	e.ReplyToken = rawEvent.ReplyToken
 	e.Type = rawEvent.Type
 	e.Mode = rawEvent.Mode
-	e.Timestamp = time.Unix(rawEvent.Timestamp/millisecPerSec, (rawEvent.Timestamp%millisecPerSec)*nanosecPerMillisec).UTC()
+	e.Timestamp = time.Unix(rawEvent.Timestamp/milliSecPerSec, (rawEvent.Timestamp%milliSecPerSec)*nanoSecPerMilliSec).UTC()
 	e.Source = rawEvent.Source
 
 	switch rawEvent.Type {
@@ -417,9 +419,10 @@ func (e *Event) UnmarshalJSON(body []byte) (err error) {
 		switch rawEvent.Message.Type {
 		case MessageTypeText:
 			e.Message = &TextMessage{
-				ID:     rawEvent.Message.ID,
-				Text:   rawEvent.Message.Text,
-				Emojis: rawEvent.Message.Emojis,
+				ID:      rawEvent.Message.ID,
+				Text:    rawEvent.Message.Text,
+				Emojis:  rawEvent.Message.Emojis,
+				Mention: rawEvent.Message.Mention,
 			}
 		case MessageTypeImage:
 			e.Message = &ImageMessage{
